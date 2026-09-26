@@ -1,0 +1,33 @@
+- title: Tutorial home
+  key: tutorial-index
+  url: /tutorial/
+- title: 1 — Create the project
+  key: tutorial-01
+  url: /tutorial/01-project/
+- title: 2 — Pages, routes & views
+  key: tutorial-02
+  url: /tutorial/02-pages/
+- title: 3 — Database & migrations
+  key: tutorial-03
+  url: /tutorial/03-database/
+- title: 4 — Models & CRUD
+  key: tutorial-04
+  url: /tutorial/04-models/
+- title: 5 — Admin login
+  key: tutorial-05
+  url: /tutorial/05-admin-login/
+- title: 6 — Admin security
+  key: tutorial-06
+  url: /tutorial/06-admin-security/
+- title: 7 — JSON API
+  key: tutorial-07
+  url: /tutorial/07-api/
+- title: 8 — Runtime features
+  key: tutorial-08
+  url: /tutorial/08-runtime/
+- title: 9 — Deployment
+  key: tutorial-09
+  url: /tutorial/09-deploy/
+- title: 10 — Final checklist
+  key: tutorial-10
+  url: /tutorial/10-checklist/

@@ -1,0 +1,21 @@
+Options -Indexes
+DirectoryIndex public/index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never expose application/system source directories.
+    RewriteRule ^(?:app|system)(?:/|$) - [F,L]
+
+    # If this fallback file is active because the vhost points at the project
+    # root, map public web assets to the real public directory.
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.+)$ public/$1 [L]
+
+    # Allow the actual public directory to be served when explicitly requested.
+    RewriteRule ^public(?:/|$) - [L]
+
+    # All remaining application URLs enter the real front controller.
+    RewriteRule ^ public/index.php [L]
+</IfModule>

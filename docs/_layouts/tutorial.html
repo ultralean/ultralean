@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} · {% endif %}ultralean tutorial</title>
+  <meta name="description" content="Build a complete ultralean application step by step.">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  {% seo %}
+</head>
+<body class="site tutorial-page">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="{{ '/' | relative_url }}"><span class="brand-mark">ul</span><span>ultralean</span></a>
+      <nav class="main-nav" aria-label="Primary navigation">
+        <a href="{{ '/' | relative_url }}">Documentation</a>
+        <a class="active" href="{{ '/tutorial/' | relative_url }}">Tutorial</a>
+        <a href="https://github.com/ultralean/ultralean">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar tutorial-sidebar" aria-label="Tutorial navigation">
+      <div class="sidebar-top">
+        <span class="eyebrow">Build by doing</span>
+        <h2>Step-by-step tutorial</h2>
+        <p>Start with an empty project and build a practical ultralean app.</p>
+      </div>
+
+      <a class="sidebar-home" href="{{ '/tutorial/' | relative_url }}"><span>⌂</span> Tutorial home</a>
+
+      <nav class="side-nav">
+        <div class="side-nav-label">Tutorial steps</div>
+        {% for item in site.data.tutorial %}
+          {% assign item_url = item.url | relative_url %}
+          <a class="side-link{% if page.key == item.key %} current{% endif %}" href="{{ item_url }}"{% if page.key == item.key %} aria-current="page"{% endif %}>
+            <span class="side-dot"></span>{{ item.title }}
+          </a>
+        {% endfor %}
+      </nav>
+
+      <div class="sidebar-cta">
+        <span class="eyebrow">Need a reference?</span>
+        <strong>Documentation</strong>
+        <p>Use the reference docs whenever you need more detail.</p>
+        <a href="{{ '/' | relative_url }}">Open documentation <span>→</span></a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="mobile-picker">
+        <label for="tutorial-menu">Tutorial steps</label>
+        <select id="tutorial-menu" onchange="if(this.value) window.location.href=this.value">
+          {% for item in site.data.tutorial %}
+            {% assign item_url = item.url | relative_url %}
+            <option value="{{ item_url }}"{% if page.key == item.key %} selected{% endif %}>{{ item.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="reading-wrap">
+        <div class="breadcrumbs">
+          <a href="{{ '/tutorial/' | relative_url }}">Tutorial</a>
+          <span>/</span>
+          <span>{{ page.title }}</span>
+        </div>
+
+        <article class="article tutorial-article">
+          {{ content }}
+        </article>
+
+        {% assign current_index = nil %}
+        {% for item in site.data.tutorial %}
+          {% if item.key == page.key %}
+            {% assign current_index = forloop.index0 %}
+          {% endif %}
+        {% endfor %}
+
+        {% assign previous_index = current_index | minus: 1 %}
+        {% assign next_index = current_index | plus: 1 %}
+        {% assign previous_item = site.data.tutorial[previous_index] %}
+        {% assign next_item = site.data.tutorial[next_index] %}
+
+        <nav class="pager" aria-label="Tutorial pagination">
+          {% if previous_item %}
+            <a class="pager-card previous" href="{{ previous_item.url | relative_url }}">
+              <span class="pager-label">Previous step</span>
+              <strong>← {{ previous_item.title }}</strong>
+            </a>
+          {% else %}
+            <div class="pager-card pager-empty"></div>
+          {% endif %}
+
+          {% if next_item %}
+            <a class="pager-card next" href="{{ next_item.url | relative_url }}">
+              <span class="pager-label">Next step</span>
+              <strong>{{ next_item.title }} →</strong>
+            </a>
+          {% else %}
+            <div class="pager-card pager-end">
+              <span class="pager-label">Tutorial complete</span>
+              <strong><a href="{{ '/' | relative_url }}">Return to documentation →</a></strong>
+            </div>
+          {% endif %}
+        </nav>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div>ultralean · step-by-step tutorial</div>
+    <div><a href="{{ '/' | relative_url }}">Documentation</a><span>·</span><a href="https://github.com/ultralean/ultralean">GitHub</a></div>
+  </footer>
+</body>
+</html>

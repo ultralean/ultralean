@@ -1,0 +1,12 @@
+title: ultralean documentation
+description: A small, plain-PHP application foundation for PHP 8+.
+baseurl: /ultralean
+url: https://ultralean.github.io
+permalink: pretty
+markdown: kramdown
+kramdown:
+  input: GFM
+plugins:
+  - jekyll-seo-tag
+exclude:
+  - README.md

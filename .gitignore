@@ -1,0 +1,7 @@
+/app/Storage/database.sqlite
+/app/Storage/logs/*
+!/app/Storage/logs/.gitkeep
+/app/Storage/cache/*
+!/app/Storage/cache/.gitkeep
+/app/Storage/uploads/*
+!/app/Storage/uploads/.gitkeep
