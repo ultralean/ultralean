@@ -40,18 +40,19 @@ It keeps PHP, SQL, PDO, HTML and HTTP close to the surface. Components are loade
 
 ## Quick start
 
-1. Copy the project to your web server.
-2. Point the web server document root to `public/`.
-3. Edit `app/Config/app.php`.
-4. Edit `app/Config/database.php`.
-5. Run the first migration:
+1. Clone this repository `https://github.com/ultralean/ultralean.git` or download it `https://github.com/ultralean/ultralean/archive/refs/heads/master.zip` and extract it.
+2. Copy the project to your web server.
+3. Point the web server document root to `public/`.
+4. Edit `app/Config/app.php`.
+5. Edit `app/Config/database.php`.
+6. Run the first migration:
 
 ```bash
 php ul migrate
 ```
 
-6. Open the application in a browser.
-7. The included example application provides an admin login:
+7. Open the application in a browser.
+8. The included example application provides an admin login:
 
 ```text
 Username: admin
@@ -60,11 +61,21 @@ Password: admin
 
 Change the password immediately for anything beyond local demonstration.
 
+### Local development or hosting with SSH
+
+If you are working in a local development environment or on a hosting provider that gives you SSH access, run the following command from the root directory of ultralean to view all available CLI commands:
+
+```bash
+php ul
+```
+
+This displays the list of all available commands for tasks such as database migrations and serve command.
+
 ### Shared hosting without SSH
 
 The project includes `public/migrate.php` as a browser-based alternative to the CLI migration commands. It uses the same CLI command and migration implementation.
 
-In production, ultralean deliberately blocks the normal site while `public/migrate.php` remains present. Run the required migrations, then delete or move `public/migrate.php`.
+In production, ultralean deliberately blocks the normal site while `public/migrate.php` remains present. Run the required migrations, then delete or move `public/migrate.php` to somewhere else outside of public directory.
 
 ## Web + API in one application
 
@@ -119,12 +130,10 @@ The account landing page is:
 
 **https://ultralean.github.io/**
 
-## GitHub
-
-Project: https://github.com/ultralean/ultralean
-
-The repository is named `ultralean` in this documentation. The shorter `ul` name also works if you prefer it; the executable remains `php ul` either way.
-
 ## License
 
-Add the license you want to use before publishing the repository. MIT is a common choice for a small reusable PHP project, but the repository owner should choose the license that matches the project's intended terms.
+ultralean is free and unencumbered software released into the public domain under The Unlicense.
+
+You are free to use, copy, modify, publish, distribute, compile, sell, and otherwise use ultralean for any purpose, including commercial and non-commercial purposes, without requiring permission or attribution.
+
+See the LICENSE file for the complete license text.

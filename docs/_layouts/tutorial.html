@@ -22,6 +22,12 @@
 
   <div class="layout">
     <aside class="sidebar tutorial-sidebar" aria-label="Tutorial navigation">
+      <div class="sidebar-cta">
+        <span class="eyebrow">Need a reference?</span>
+        <strong>Documentation</strong>
+        <p>Use the reference docs whenever you need more detail.</p>
+        <a href="{{ '/' | relative_url }}">Open documentation <span>→</span></a>
+      </div>
       <div class="sidebar-top">
         <span class="eyebrow">Build by doing</span>
         <h2>Step-by-step tutorial</h2>
@@ -39,13 +45,6 @@
           </a>
         {% endfor %}
       </nav>
-
-      <div class="sidebar-cta">
-        <span class="eyebrow">Need a reference?</span>
-        <strong>Documentation</strong>
-        <p>Use the reference docs whenever you need more detail.</p>
-        <a href="{{ '/' | relative_url }}">Open documentation <span>→</span></a>
-      </div>
     </aside>
 
     <main class="main">
