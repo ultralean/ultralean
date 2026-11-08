@@ -13,6 +13,93 @@ function db(?string $name = null): \PDO
     return \System\Core\Database::connection($name);
 }
 
+/**
+ * @throws \InvalidArgumentException
+ * @throws \RuntimeException
+ * 
+ * This function quotes an SQL identifier (e.g., table or column name) based on the database driver.
+ * It ensures that the identifier is valid and properly quoted to prevent SQL injection.
+ */
+function sql_identifier(
+    string $identifier,
+    ?string $driver = null
+): string {
+    if (!preg_match(
+        '/^[A-Za-z_][A-Za-z0-9_]*$/D',
+        $identifier
+    )) {
+        throw new \InvalidArgumentException(
+            'Invalid SQL identifier.'
+        );
+    }
+
+    $driver ??= strtolower(
+        (string) db()->getAttribute(\PDO::ATTR_DRIVER_NAME)
+    );
+
+    $quote = match ($driver) {
+        'mysql' => '`',
+        'pgsql', 'sqlite' => '"',
+        default => throw new \RuntimeException(
+            'Unsupported database driver.'
+        ),
+    };
+
+    return $quote . $identifier . $quote;
+}
+
+/**
+ * @throws \InvalidArgumentException
+ * @throws \RuntimeException
+ *
+ * This function quotes a dot-separated SQL identifier path (e.g., "schema.table.column") based on the database driver.
+ * It ensures that each part of the path is valid and properly quoted to prevent SQL injection.
+ *
+ * Important: quoting shop.users correctly does not mean every database supports cross-database queries in that form.
+ * MySQL supports database.table; PostgreSQL generally uses schema.table within a connection;
+ * SQLite uses attached_database.table. The helper quotes the path but cannot make unsupported database semantics work.
+ */
+function sql_identifier_path(
+    string $identifierPath,
+    ?string $connectionName = null
+): string {
+    $parts = explode('.', $identifierPath);
+
+    if ($parts === []) {
+        throw new \InvalidArgumentException(
+            'SQL identifier path cannot be empty.'
+        );
+    }
+
+    $pdo = db($connectionName);
+
+    return implode('.', array_map(
+        static function (string $part) use ($pdo): string {
+            if (!preg_match(
+                '/^[A-Za-z_][A-Za-z0-9_]*$/D',
+                $part
+            )) {
+                throw new \InvalidArgumentException(
+                    'Invalid SQL identifier path.'
+                );
+            }
+
+            $quote = match (strtolower(
+                (string) $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)
+            )) {
+                'mysql' => '`',
+                'pgsql', 'sqlite' => '"',
+                default => throw new \RuntimeException(
+                    'Unsupported database driver.'
+                ),
+            };
+
+            return $quote . $part . $quote;
+        },
+        $parts
+    ));
+}
+
 function request(): \System\Core\Request
 {
     return \System\Core\App::request();
@@ -39,10 +126,66 @@ function session(): \System\Core\Session
     return $session ??= new \System\Core\Session();
 }
 
-function auth(): \App\Auth\Auth
+/**
+ * @param mixed $guard
+ * @throws InvalidArgumentException
+ * @throws RuntimeException
+ * @return System\Core\Auth
+ *
+ * This function retrieves an instance of the Auth class for the specified guard.
+ * It uses the configuration defined in the 'auth' config file to determine the model and session key for the guard.
+ * If the guard is not specified, it defaults to the guard defined in the 'defaults' section of the config.
+ * The function caches instances of Auth for each guard to avoid creating multiple instances for the same guard.
+ */
+function auth(?string $guard = null): \System\Core\Auth
 {
-    static $auth;
-    return $auth ??= new \App\Auth\Auth(session());
+    static $instances = [];
+
+    $guard ??= (string) config('auth.defaults.guard', 'user');
+
+    if (isset($instances[$guard])) {
+        return $instances[$guard];
+    }
+
+    $guards = config('auth.guards', []);
+    $settings = $guards[$guard] ?? null;
+
+    if (!is_array($settings)) {
+        throw new \InvalidArgumentException(
+            "Unknown authentication guard: {$guard}"
+        );
+    }
+
+    $model = $settings['model'] ?? null;
+    $sessionKey = $settings['session_key'] ?? null;
+
+    if (
+        !is_string($model) ||
+        !class_exists($model) ||
+        !is_string($sessionKey) ||
+        $sessionKey === ''
+    ) {
+        throw new \RuntimeException(
+            "Invalid authentication configuration for guard: {$guard}"
+        );
+    }
+
+    return $instances[$guard] = new \System\Core\Auth(
+        session(),
+        $sessionKey,
+        static function (int|string $id) use ($model): ?array {
+            $account = $model::where('id', '=', $id)->first();
+
+            if (
+                $account === null ||
+                ($account['status'] ?? null) !== 'active'
+            ) {
+                return null;
+            }
+
+            return $account;
+        }
+    );
 }
 
 function csrf(): \System\Core\Csrf

@@ -11,8 +11,8 @@ final class AdminAuthMiddleware
 {
     public function handle(Request $request, callable $next): Response
     {
-        if (!auth()->check()) {
-            return Response::redirect('/login');
+        if (!auth('admin')->check()) {
+            return Response::redirect(url('admin.login'));
         }
 
         return $next();

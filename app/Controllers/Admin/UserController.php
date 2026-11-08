@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
-use App\Models\User;
+use App\Models\AdminAccount;
 use System\Core\Controller;
 use System\Core\Response;
 
@@ -19,7 +19,7 @@ final class UserController extends Controller
     {
         $user = auth()->user();
         if ($user === null) {
-            return $this->redirect('/login');
+            return $this->redirect('/admin/login');
         }
 
         return $this->view('admin/profile', [
@@ -33,8 +33,9 @@ final class UserController extends Controller
     public function update(): Response
     {
         $user = auth()->user();
+
         if ($user === null) {
-            return $this->redirect('/login');
+            return $this->redirect('/admin/login');
         }
 
         $data = [
@@ -54,13 +55,13 @@ final class UserController extends Controller
             return $this->redirect('/admin/account');
         }
 
-        $existing = User::where('username', '=', $data['username'])->first();
+        $existing = AdminAccount::where('username', '=', $data['username'])->first();
         if ($existing !== null && (string) $existing['id'] !== (string) $user['id']) {
             session()->flash('error', 'That username is already in use.');
             return $this->redirect('/admin/account');
         }
 
-        $existing = User::where('email', '=', $data['email'])->first();
+        $existing = AdminAccount::where('email', '=', $data['email'])->first();
         if ($existing !== null && (string) $existing['id'] !== (string) $user['id']) {
             session()->flash('error', 'That email address is already in use.');
             return $this->redirect('/admin/account');
@@ -84,10 +85,7 @@ final class UserController extends Controller
         }
 
         $data['updated_at'] = now();
-        User::update((int) $user['id'], $data);
-
-        // Refresh the cached authenticated user without changing the session id.
-        auth()->login(User::find((int) $user['id']) ?? $user);
+        AdminAccount::update((int) $user['id'], $data);
 
         session()->flash('success', 'Your account details were updated successfully.');
         return $this->redirect('/admin/account');

@@ -12,7 +12,7 @@ final class ServeCommand
     {
         return [
             'name' => 'serve',
-            'description' => 'Start the local development server.',
+            'description' => 'Start the local development server. Use \'php ul serve --help\' for detailed usage instructions.',
         ];
     }
 

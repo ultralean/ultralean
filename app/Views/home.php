@@ -8,7 +8,8 @@
     <div class="actions">
         <a class="btn" href="<?= e(url('about')) ?>">Learn about ultralean</a>
         <a class="btn secondary" href="https://github.com/ultralean/ultralean">GitHub</a>
-        <a class="btn secondary" href="<?= e(url('login')) ?>">Admin panel</a>
+        <a class="btn secondary" href="<?= e(url('login')) ?>">User Area</a>
+        <a class="btn secondary" href="<?= e(url('admin.login')) ?>">Admin panel</a>
     </div>
 </section>
 

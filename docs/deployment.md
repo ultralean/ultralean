@@ -78,6 +78,3 @@ Do not route arbitrary requests to PHP files outside `public/`.
 
 Use HTTPS for production applications, especially applications containing authentication or personal data.
 
-## GitHub Pages
-
-GitHub Pages is for the **documentation**, not for running the PHP application. GitHub Pages serves static content and does not execute PHP server-side. citeturn0search2turn0search8

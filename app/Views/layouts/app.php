@@ -15,8 +15,9 @@
     <a class="brand" href="/">ultralean</a>
     <nav class="links">
         <a href="<?= e(url('home')) ?>">Home</a>
+        <a href="<?= e(url('account')) ?>">User Area</a>
         <a href="<?= e(url('about')) ?>">About</a>
-        <a href="<?= e(url('login')) ?>">Admin</a>
+        <a href="<?= e(url('admin.login')) ?>">Admin</a>
     </nav>
 </div></header>
 <main class="wrap">

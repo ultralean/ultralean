@@ -166,7 +166,7 @@ final class ErrorHandler
                 'exception' => $e::class,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
+                //'trace' => $e->getTraceAsString(),
             ]);
         } catch (Throwable) {
             // Never let logging hide the original error.

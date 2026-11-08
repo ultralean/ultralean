@@ -26,4 +26,15 @@ final class HomeController extends Controller
     {
         return $this->view('about', ['title' => 'About ultralean']);
     }
+    public function account(): Response
+    {
+        $elapsed = (hrtime(true) - UL_START_TIME) / 1_000_000;
+        $memory = memory_get_usage(false) / 1024 / 1024;
+        return $this->view('account',[
+            'title' => 'Logged in to the account',
+            'elapsed' => number_format($elapsed, 3),
+            'memory' => number_format($memory, 2),
+            'php' => PHP_VERSION,
+        ]);
+    }
 }

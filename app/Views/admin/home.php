@@ -7,7 +7,7 @@
     <p>Welcome, <?= e($user['name'] ?? 'Administrator') ?>. This is a small example of session-based authentication, middleware, database access, views, CSRF protection, and account management.</p>
     <div class="actions">
         <a class="btn" href="<?= e(url('admin.account')) ?>">Account Settings</a>
-        <form class="logout" method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button class="btn secondary" type="submit">Log out</button></form>
+        <form class="logout" method="post" action="<?= e(url('admin.logout')) ?>"><?= csrf_field() ?><button class="btn secondary" type="submit">Log out</button></form>
     </div>
 </section>
 <section class="grid">

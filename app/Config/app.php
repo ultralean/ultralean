@@ -52,7 +52,7 @@ return [
     ],
 
     // File-backed rate limiting. It is enabled here, but only routes listed in
-    // 'routes' receive a custom rule. Other routes use the general rule.
+    // 'routes' array below will receive a custom rule. Other routes use the general rule.
     'rate_limit' => [
         'enabled' => true,
 
