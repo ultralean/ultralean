@@ -1,3 +1,8 @@
+---
+layout: docs
+key: rate-limiting
+title: Rate limiting and cache
+---
 
 ## RateLimit middleware
 
