@@ -1,128 +1,128 @@
+
 ---
 layout: docs
 key: http
-title: Requests and responses
+title: HTTP requests and responses
 ---
 
-# Requests and responses
+# HTTP requests and responses
 
-## Request object
+ultralean provides lightweight Request and Response classes for handling HTTP communication.
 
-Controllers can access the request through the base controller:
+## Request
+
+Controllers can access the current request through:
 
 ```php
 $request = $this->request();
 ```
 
-Available methods include:
+The Request class provides access to:
+
+- HTTP method and path
+- Query parameters
+- Form input
+- JSON input
+- Request headers
+- Client IP
+- Old form input
+
+See [Request]({{ '/request/' | relative_url }}) for the complete reference.
+
+## Response
+
+Controllers can return responses directly:
 
 ```php
-$request->method();
-$request->path();
-$request->uri();
-$request->queryString();
-$request->query('page');
-$request->input('name');
-$request->json();
-$request->all();
-$request->header('Accept');
-$request->ip();
-$request->wantsJson();
-$request->isAjax();
+return Response::make('Hello');
 ```
 
-## Query parameters
-
-For:
-
-```text
-/users?active_from=20220826&active_to=20250604
-```
-
-use:
+Common response types include:
 
 ```php
-$from = $request->query('active_from');
-$to = $request->query('active_to');
+return Response::make('Created', 201);
+
+return Response::redirect('/login');
+
+return Response::noContent();
+
+return Response::json([
+    'ok' => true,
+]);
 ```
 
-Query parameters are intentionally preserved during canonical URL redirects.
+See [Response]({{ '/response/' | relative_url }}) for more examples.
 
-## Form input
+## Form handling
+
+ultralean includes CSRF protection, named forms, old-input restoration and automatic expiration of preserved form data.
+
+A typical form looks like:
 
 ```php
-$name = $request->input('name');
+<form method="POST" action="/profile">
+    <?= csrf_field('profile') ?>
+
+    <input
+        type="text"
+        name="name"
+        value="<?= e(form_old('profile')->old('name', '')) ?>"
+    >
+
+    <button type="submit">Save</button>
+</form>
 ```
 
-`all()` can retrieve the combined request input.
+After validation fails:
+
+```php
+return back()->withData();
+```
+
+The submitted input is preserved and can be restored when the user returns to the form.
+
+See [Forms]({{ '/forms/' | relative_url }}) for the complete guide.
 
 ## JSON input
 
 For an API request containing:
 
 ```json
-{"name":"Imran"}
+{
+    "name": "Imran"
+}
 ```
 
-use:
+Use:
 
 ```php
 $data = $request->json();
+
 $name = $request->input('name');
 ```
 
-## Responses
-
-HTML/text:
-
-```php
-return Response::make('Hello');
-```
-
-Status:
-
-```php
-return Response::make('Created', 201);
-```
-
-Redirect:
-
-```php
-return Response::redirect('/login');
-```
-
-No content:
-
-```php
-return Response::noContent();
-```
-
-JSON:
-
-```php
-return Response::json([
-    'ok' => true,
-]);
-```
-
-Created JSON:
-
-```php
-return Response::created([
-    'id' => $id,
-]);
-```
+JSON input is also available through `input()` when the request uses an `application/json` content type.
 
 ## Controller shortcuts
 
-The base controller provides:
+The base controller provides convenient methods:
 
 ```php
 $this->view('users/index', $data);
+
 $this->redirect('/login');
+
 $this->json($data);
 ```
 
 ## API content negotiation
 
-If a request has `Accept: application/json`, the error handler can return JSON. Requests to `/api/...` are also treated as API requests for error rendering.
+If a request has:
+
+```http
+Accept: application/json
+```
+
+the error handler can return JSON.
+
+Requests to `/api/...` are also treated as API requests for error rendering.

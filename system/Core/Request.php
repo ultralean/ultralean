@@ -8,6 +8,8 @@ final class Request
 {
     private ?array $json = null;
 
+    private array $formStates = [];
+
     public function method(): string
     {
         return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -18,6 +20,7 @@ final class Request
         $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
         $path = explode('?', $uri, 2)[0];
         $path = explode('#', $path, 2)[0] ?: '/';
+
         return $path;
     }
 
@@ -29,7 +32,10 @@ final class Request
     public function queryString(): string
     {
         $parts = explode('?', $this->uri(), 2);
-        return isset($parts[1]) ? explode('#', $parts[1], 2)[0] : '';
+
+        return isset($parts[1])
+            ? explode('#', $parts[1], 2)[0]
+            : '';
     }
 
     public function query(?string $key = null, mixed $default = null): mixed
@@ -45,7 +51,13 @@ final class Request
     {
         $data = $_POST;
 
-        if ($this->method() !== 'GET' && str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) {
+        if (
+            $this->method() !== 'GET' &&
+            str_contains(
+                strtolower((string) ($_SERVER['CONTENT_TYPE'] ?? '')),
+                'application/json'
+            )
+        ) {
             $data = $this->json();
         }
 
@@ -64,6 +76,7 @@ final class Request
 
         $body = file_get_contents('php://input');
         $decoded = json_decode($body ?: '{}', true);
+
         return $this->json = is_array($decoded) ? $decoded : [];
     }
 
@@ -75,6 +88,7 @@ final class Request
     public function header(string $name, mixed $default = null): mixed
     {
         $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+
         return $_SERVER[$key] ?? $default;
     }
 
@@ -86,12 +100,35 @@ final class Request
     public function wantsJson(): bool
     {
         $accept = strtolower((string) $this->header('Accept', ''));
+
         return str_contains($accept, 'application/json')
             || str_starts_with($this->path(), '/api/');
     }
 
     public function isAjax(): bool
     {
-        return strtolower((string) $this->header('X-Requested-With', '')) === 'xmlhttprequest';
+        return strtolower(
+            (string) $this->header('X-Requested-With', '')
+        ) === 'xmlhttprequest';
+    }
+
+
+    /**
+     * Get the old-input state for a named form.
+     *
+     * Cached independently for each form during this request.
+     */
+    public function formState(string $name = 'default'): FormState
+    {
+        FormState::validateFormName($name);
+
+        return $this->formStates[$name] ??=
+            new FormState(
+                session(),
+                is_string($this->query('_old'))
+                    ? $this->query('_old')
+                    : null,
+                $name
+            );
     }
 }

@@ -35,7 +35,9 @@ final class Clock implements Stringable
     public static function from(DateTimeInterface|string $value, ?string $timezone = null): self
     {
         if ($value instanceof DateTimeInterface) {
-            return self::fromDate(new DateTimeImmutable($value->format('Y-m-d H:i:s.uP')));
+            return self::fromDate(
+                DateTimeImmutable::createFromInterface($value)
+            );
         }
 
         $value = trim($value);

@@ -59,43 +59,44 @@ function sql_identifier(
  * MySQL supports database.table; PostgreSQL generally uses schema.table within a connection;
  * SQLite uses attached_database.table. The helper quotes the path but cannot make unsupported database semantics work.
  */
+
 function sql_identifier_path(
     string $identifierPath,
     ?string $connectionName = null
 ): string {
     $parts = explode('.', $identifierPath);
 
-    if ($parts === []) {
+    if ($identifierPath === '') {
         throw new \InvalidArgumentException(
             'SQL identifier path cannot be empty.'
         );
     }
 
-    $pdo = db($connectionName);
+    $driver = strtolower(
+        (string) db($connectionName)->getAttribute(
+            \PDO::ATTR_DRIVER_NAME
+        )
+    );
+
+    $quote = match ($driver) {
+        'mysql' => '`',
+        'pgsql', 'sqlite' => '"',
+        default => throw new \RuntimeException(
+            'Unsupported database driver.'
+        ),
+    };
+
+    foreach ($parts as $part) {
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $part)) {
+            throw new \InvalidArgumentException(
+                'Invalid SQL identifier path.'
+            );
+        }
+    }
 
     return implode('.', array_map(
-        static function (string $part) use ($pdo): string {
-            if (!preg_match(
-                '/^[A-Za-z_][A-Za-z0-9_]*$/D',
-                $part
-            )) {
-                throw new \InvalidArgumentException(
-                    'Invalid SQL identifier path.'
-                );
-            }
-
-            $quote = match (strtolower(
-                (string) $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)
-            )) {
-                'mysql' => '`',
-                'pgsql', 'sqlite' => '"',
-                default => throw new \RuntimeException(
-                    'Unsupported database driver.'
-                ),
-            };
-
-            return $quote . $part . $quote;
-        },
+        static fn(string $part): string =>
+        $quote . $part . $quote,
         $parts
     ));
 }
@@ -199,9 +200,9 @@ function csrf_token(): string
     return csrf()->token();
 }
 
-function csrf_field(): string
+function csrf_field(string $formName = 'default'): string
 {
-    return csrf()->field();
+    return csrf()->field($formName);
 }
 
 function validate(array $data, array $rules): \System\Core\Validator
@@ -209,44 +210,50 @@ function validate(array $data, array $rules): \System\Core\Validator
     return new \System\Core\Validator($data, $rules);
 }
 
+
 function local_now(): string
 {
     return \System\Core\Clock::now()->format('Y-m-d H:i:sP');
 }
 
-function to_utc(string|\DateTimeInterface $value, ?string $fromTimezone = null): string
-{
-    if ($fromTimezone !== null) {
-        $date = $value instanceof \DateTimeInterface
-            ? new \DateTimeImmutable($value->format('Y-m-d H:i:s.u'), new \DateTimeZone($fromTimezone))
-            : new \DateTimeImmutable($value, new \DateTimeZone($fromTimezone));
-        return $date->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
-    }
-
-    return \System\Core\Clock::toUtc($value)->format('Y-m-d\TH:i:s\Z');
+function to_utc(
+    string|\DateTimeInterface $value,
+    ?string $fromTimezone = null
+): string {
+    return \System\Core\Clock::toUtc($value, $fromTimezone)->iso8601();
 }
 
-function to_local(string|\DateTimeInterface $value, ?string $timezone = null, ?string $format = null): string
-{
+function to_local(
+    string|\DateTimeInterface $value,
+    ?string $timezone = null,
+    ?string $format = null
+): string {
     $date = \System\Core\Clock::toApplicationTimezone($value);
+
     if ($timezone !== null) {
-        $date = $date->setTimezone(new \DateTimeZone($timezone));
+        $date = $date->inTimezone($timezone);
     }
-    return $date->format($format ?: 'Y-m-d H:i:sP');
+
+    return $date->format($format ?? 'Y-m-d H:i:sP');
 }
 
-function convert_timezone(string|\DateTimeInterface $value, string $from, string $to, ?string $format = null): string
-{
-    $date = $value instanceof \DateTimeInterface
-        ? new \DateTimeImmutable($value->format('Y-m-d H:i:s.u'), new \DateTimeZone($from))
-        : new \DateTimeImmutable($value, new \DateTimeZone($from));
-    return $date->setTimezone(new \DateTimeZone($to))->format($format ?: 'Y-m-d H:i:sP');
+function convert_timezone(
+    string|\DateTimeInterface $value,
+    string $from,
+    string $to,
+    ?string $format = null
+): string {
+    return \System\Core\Clock::from($value, $from)
+        ->inTimezone($to)
+        ->format($format ?? 'Y-m-d H:i:sP');
 }
 
-function timestamp(string|\DateTimeInterface $value): \System\Core\Clock
-{
+function clock_from(
+    string|\DateTimeInterface $value
+): \System\Core\Clock {
     return \System\Core\Clock::from($value);
 }
+
 
 function db_fetch(string $sql, array $params = [], ?string $name = null): ?array
 {
@@ -266,4 +273,54 @@ function db_value(string $sql, array $params = [], ?string $name = null): mixed
 function db_execute(string $sql, array $params = [], ?string $name = null): int
 {
     return \System\Core\Database::execute($sql, $params, $name);
+}
+
+
+function back(int $status = 302): \System\Core\Response
+{
+    $referer = request()->header('Referer');
+
+    $fallback = '/';
+
+    if (
+        !is_string($referer) ||
+        $referer === ''
+    ) {
+        return \System\Core\Response::redirect($fallback, $status);
+    }
+
+    $refererHost = parse_url($referer, PHP_URL_HOST);
+    $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+
+    // Prevent open redirect vulnerabilities.
+    if (
+        $refererHost !== null &&
+        strcasecmp($refererHost, $currentHost) !== 0
+    ) {
+        return \System\Core\Response::redirect($fallback, $status);
+    }
+
+    return \System\Core\Response::redirect($referer, $status);
+}
+
+/**
+ * Retrieve old input for a named form.
+ */
+function form_old(string $formName = 'default'): \System\Core\FormState
+{
+    return request()->formState($formName);
+}
+
+/**
+ * Retrieve old input for the default form.
+ *
+ * Backward-compatible shorthand for single-form pages.
+ */
+function old(?string $key = null, mixed $default = null): mixed
+{
+    $form = form_old();
+
+    return $key === null
+        ? $form->all()
+        : $form->old($key, $default);
 }

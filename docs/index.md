@@ -20,24 +20,38 @@ The **[step-by-step tutorial]({{ '/tutorial/' | relative_url }})** is a separate
 
 Use the reference documentation in the left sidebar. It covers installation, architecture, configuration, routing, HTTP, database access, migrations, APIs, security, errors, rate limiting, date/time, views, CLI and deployment.
 
+
+
 ## Documentation map
 
 - [Getting started]({{ '/getting-started/' | relative_url }}) — install and run the included example.
-- [Architecture]({{ '/architecture/' | relative_url }}) — understand the project directories and lazy-loading design.
+- [Architecture]({{ '/architecture/' | relative_url }}) — understand project directories and lazy loading.
 - [Configuration]({{ '/configuration/' | relative_url }}) — configure the application and database.
 - [Routing]({{ '/routing/' | relative_url }}) — routes, groups, names, middleware and canonical URLs.
-- [HTTP requests & responses]({{ '/http/' | relative_url }}) — request input, JSON, headers and responses.
-- [Database & models]({{ '/database/' | relative_url }}) — PDO, named connections and the thin model layer.
+- [Controllers]({{ '/controllers/' | relative_url }}) — create controllers and handle application requests.
+- [HTTP requests & responses]({{ '/http/' | relative_url }}) — an overview of HTTP communication.
+- [Request]({{ '/request/' | relative_url }}) — access query parameters, form input, JSON and headers.
+- [Response]({{ '/response/' | relative_url }}) — create HTTP, JSON and redirect responses.
+- [Forms]({{ '/forms/' | relative_url }}) — manage forms, multiple forms, old input and form state.
+- [CSRF protection]({{ '/csrf/' | relative_url }}) — protect state-changing requests against cross-site request forgery.
+- [Validation]({{ '/validator/' | relative_url }}) — validate incoming application data.
+- [Database & models]({{ '/database/' | relative_url }}) — PDO, named connections and database access.
+- [Models]({{ '/models/' | relative_url }}) — work with application data using the thin model layer.
 - [Migrations]({{ '/migrations/' | relative_url }}) — create, run, rollback and inspect migrations.
 - [Web APIs]({{ '/api/' | relative_url }}) — build JSON endpoints alongside normal web pages.
-- [Authentication & security]({{ '/security/' | relative_url }}) — sessions, CSRF, passwords and security practices.
-- [Errors & logging]({{ '/errors/' | relative_url }}) — production-safe errors and optional logs.
+- [Authentication & security]({{ '/security/' | relative_url }}) — authentication architecture and general security practices.
+- [Authentication]({{ '/auth/' | relative_url }}) — authenticate users and manage login sessions.
+- [Sessions]({{ '/session/' | relative_url }}) — session storage, flash data and session management.
+- [Errors & logging]({{ '/errors/' | relative_url }}) — production-safe errors and error handling.
+- [Logging]({{ '/logging/' | relative_url }}) — write application logs and configure retention.
 - [Rate limiting & cache]({{ '/rate-limiting/' | relative_url }}) — file-backed limits and cleanup behavior.
 - [Date & time]({{ '/date-time/' | relative_url }}) — UTC persistence and explicit timezone conversion.
 - [Views]({{ '/views/' | relative_url }}) — layouts, sections, partials and plain PHP templates.
 - [CLI]({{ '/cli/' | relative_url }}) — `php ul` commands and command discovery.
 - [Deployment]({{ '/deployment/' | relative_url }}) — Apache/shared hosting and production setup.
 - [Troubleshooting]({{ '/troubleshooting/' | relative_url }}) — common configuration and runtime problems.
+
+
 
 ## Design goals
 

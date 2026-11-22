@@ -1,16 +1,19 @@
----
-layout: docs
-key: rate-limiting
-title: Rate limiting and cache
----
 
-# Rate limiting and cache
+## RateLimit middleware
 
-## Rate limiting
+ultralean includes a file-based `RateLimitMiddleware` for limiting repeated requests.
 
-The built-in limiter is file-backed and intended for lightweight protection without requiring Redis or another external service.
+It uses filesystem storage and file locking to coordinate requests that share the same rate-limit identity.
 
-Configuration:
+### 1. Enabling rate limiting
+
+Configure rate limiting in:
+
+```text
+app/Config/app.php
+```
+
+Example:
 
 ```php
 'rate_limit' => [
@@ -18,70 +21,131 @@ Configuration:
     'limit' => 60,
     'window' => 60,
     'storage' => storage_path('cache/rate_limit'),
-    'cleanup_after' => 86400,
     'cleanup_every' => 100,
+    'cleanup_after' => 86400,
 ],
 ```
 
-### `limit`
+This example allows up to 60 requests per IP address per route within a 60-second window.
 
-Maximum number of operations permitted for one bucket.
+### 2. Applying middleware
 
-### `window`
-
-Window length in seconds.
-
-For example:
-
-```text
-limit = 60
-window = 60
-```
-
-means 60 requests in 60 seconds.
-
-### Login protection
-
-The example login uses two buckets:
-
-```text
-account bucket: username
-IP bucket:      source address
-```
-
-The account bucket is strict, while the IP bucket is broader. This matters for corporate networks where many people can legitimately share one public IP address.
-
-This does not claim to be an impossible-to-bypass anti-abuse system. A distributed attacker can use multiple source addresses. Stronger applications can add external abuse controls, device reputation or a distributed rate-limit store.
-
-## Cleanup
-
-Rate-limit files are temporary. `cleanup_after` determines their age threshold.
-
-```text
-43200  = 12 hours
-86400  = 24 hours
-172800 = 48 hours
-```
-
-`cleanup_every` prevents a filesystem scan on every operation.
-
-For example:
+Register the middleware on individual routes:
 
 ```php
-'cleanup_after' => 86400,
-'cleanup_every' => 100,
+Router::post(
+    '/login',
+    'AuthController@login',
+    ['RateLimit']
+);
 ```
 
-means cleanup is checked after approximately every 100 rate-limit operations.
+Or apply it to a group:
 
-## General cache directory
+```php
+Router::group('', ['RateLimit'], function () {
+    Router::post('/login', 'AuthController@login');
+    Router::post('/register', 'AuthController@register');
+});
+```
 
-Do not assume every file under `app/Storage/cache/` can be deleted safely. Applications can put their own cache there.
+### 3. Per-route configuration
 
-Framework-owned temporary stores should define their own TTL and cleanup behavior. The built-in rate-limit store is one example.
+Routes can have their own limits:
 
-## Why file-backed?
+```php
+'rate_limit' => [
+    'enabled' => true,
 
-It requires no extra service and works on ordinary PHP hosting.
+    'limit' => 60,
+    'window' => 60,
 
-For a high-traffic multi-server deployment, a shared/distributed store such as Redis may be more appropriate. ultralean does not force it into Core.
+    'routes' => [
+        '/login' => [
+            'limit' => 5,
+            'window' => 60,
+        ],
+
+        '/register' => [
+            'limit' => 3,
+            'window' => 300,
+        ],
+    ],
+],
+```
+
+Route configuration overrides the global defaults.
+
+### 4. Account-based limiting
+
+For endpoints such as login, it can be useful to limit attempts by both account identifier and IP address.
+
+Example:
+
+```php
+'rate_limit' => [
+    'enabled' => true,
+
+    'limit' => 60,
+    'window' => 60,
+
+    'routes' => [
+        '/login' => [
+            'account_field' => 'email',
+
+            'account_limit' => 5,
+            'account_window' => 300,
+
+            'ip_limit' => 20,
+            'ip_window' => 300,
+        ],
+    ],
+],
+```
+
+The middleware uses the configured request field to identify the account.
+
+Account identifiers are normalized to lowercase and trimmed before being hashed for storage.
+
+When `account_field` is configured, both account and IP limits are applied when the account field contains a value.
+
+The IP limit is still applied when the account field is empty.
+
+### 5. Rate-limit responses
+
+When a limit is exceeded, the middleware throws an exception with HTTP status 429.
+
+For non-CLI requests, it also sets:
+
+```http
+Retry-After: 60
+```
+
+The actual value depends on the remaining rate-limit window.
+
+### 6. Storage and cleanup
+
+Rate-limit records are stored as individual files:
+
+```text
+storage/cache/rate_limit/
+```
+
+Each identity receives a SHA-256-based filename.
+
+The middleware uses file locking to coordinate concurrent updates.
+
+Cleanup is checked periodically using:
+
+- `cleanup_every` — how often cleanup is considered.
+- `cleanup_after` — the age after which expired files can be removed.
+
+### Security considerations
+
+- Apply rate limiting to login, registration, password reset and other sensitive endpoints.
+- Use account-based limits where appropriate.
+- Keep rate-limit storage outside the public web root.
+- Make sure the storage directory is writable by PHP.
+- Do not rely exclusively on IP-based limiting.
+- Consider a shared rate-limit backend when deploying multiple servers.
+- Rate limiting does not replace account lockout policies or abuse monitoring.

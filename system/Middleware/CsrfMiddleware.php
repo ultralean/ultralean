@@ -16,7 +16,9 @@ final class CsrfMiddleware
             $token = $request->input('_token') ?? $request->header('X-CSRF-TOKEN');
 
             if (!csrf()->check(is_string($token) ? $token : null)) {
-                throw new \RuntimeException('The security token is invalid or has expired.', 419);
+                //throw new \RuntimeException('The security token is invalid or has expired.', 419);
+                session()->flash('error', 'The security token is invalid or has expired. Please try again.');
+                return back();
             }
         }
 
